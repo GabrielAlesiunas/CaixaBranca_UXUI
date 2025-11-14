@@ -1,36 +1,83 @@
 package login;
 
+// IMPORT ERRADO - "java.sqp"
 import java.sqp.Connection;
+
+// IMPORT CORRETO – "java.sql"
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class User {
+
+    // Variável de conexão com o banco
     Connection conn = null;
-    try{
-        Class.forName("com.mysql.Driver.Manager").newInstace();
-        String url = "jdbc:mysql://127.0.0.1/test?user=lopes&password=123";
-        conn = DriverManager.getConnection(url);
-    }catch (Exception e) {}
-    return conn;}
+
+    // Método para conectar ao banco
+    public Connection conectarDB() {
+        try {
+            // Carrega o driver do MySQL
+            // Código incorreto - "com.mysql.Driver.Manager"
+            Class.forName("com.mysql.jdbc.Driver");
+            
+            // (Código correto - "com.mysql.jdbc.Driver")
+            Class.forName("com.mysql.jdbc.Driver");
+
+            // URL de conexão com login e senha
+            String url = "jdbc:mysql://127.0.0.1/test?user=lopes&password=123";
+
+            // Estabelece a conexão
+            conn = DriverManager.getConnection(url);
+
+        } catch (Exception e) {
+            // Captura qualquer erro na conexão
+            System.out.println("Erro ao conectar: " + e.getMessage());
+        }
+
+        // Retorna o objeto Connection
+        return conn;
+    }
+
+    // Variáveis de estado do usuário
     public String nome = "";
     public boolean result = false;
-    public boolean verificarUsuario(String logi, String senha){
+
+    // Método que verifica login e senha no banco
+    public boolean verificarUsuario(String login, String senha) {
+
+        // Monta a query SQL
+        // ⚠ Isso é vulnerável a SQL Injection
         String sql = "";
+        sql += "SELECT nome FROM usuarios ";
+        sql += "WHERE login = '" + login + "'";
+        sql += " AND senha = '" + senha + "'";
+
+        // Obtém conexão
         Connection conn = conectarDB();
 
-        sql += "select nome from usuarios";
-        sql +="where login = " + "'" + login + "'";
-        sql += " and senha = " + "'" + senha + "'";
-        try{
+        try {
+            // Cria um Statement para executar a query
             Statement st = conn.createStatement();
+
+            // Executa a consulta e guarda o resultado
             ResultSet rs = st.executeQuery(sql);
-            if(rs.next()){
-                result = true;
-                nome = rs.getString("nome");}
-        }catch (Exception e) {}
-        return result;}
+
+            // Se encontrou resultado...
+            if (rs.next()) {
+                result = true; // login válido
+                nome = rs.getString("nome"); // pega o nome do usuário
+            }
+
+        } catch (Exception e) {
+            // Captura qualquer erro durante a consulta
+            System.out.println("Erro ao verificar usuário: " + e.getMessage());
+        }
+
+        // Retorna true se achou o usuário
+        return result;
     }
+}
 
 
 // 1) O código foi devidamente documentado?
@@ -112,3 +159,4 @@ public class User {
         return result;}
     // 22
 }
+
